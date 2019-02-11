@@ -1,4 +1,6 @@
 {% extends 'content_base.html.twig' %}
+{% form_theme registrationForm _self %}
+
 
 {% block title %}Register!{% endblock %}
 
@@ -7,6 +9,17 @@
 
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
 {% endblock %}
+
+{%- block form_row -%}
+    {%- set widget_attr = {} -%}
+    {%- if help is not empty -%}
+        {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
+    {%- endif -%}
+        {{- form_label(form) -}}
+        {{- form_errors(form) -}}
+        {{- form_widget(form, widget_attr) -}}
+        {{- form_help(form) -}}
+{%- endblock form_row -%}
 
 {% block content_body %}
 {#
@@ -33,7 +46,8 @@
         </div>
     </div>
 #}
-    {{ form_start(registrationForm, {attr: {novalidate: 'novalidate'}}) }}
+    {{ form_start(registrationForm, {attr: {novalidate: 'novalidate', class: 'form-signin'}}) }}
+        <h1 class="h3 mb-3 font-weight-normal">Register</h1>
         {{ form_widget(registrationForm) }}
         <button class="btn btn-lg btn-primary btn-block" type="submit">
             Register
