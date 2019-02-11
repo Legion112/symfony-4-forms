@@ -29,7 +29,6 @@ class ArticleAdminController extends AbstractController
              * @var $article $article
              */
             $article = $form->getData();
-            $article->setAuthor($this->getUser());
 
             $em->persist($article);
             $em->flush();
