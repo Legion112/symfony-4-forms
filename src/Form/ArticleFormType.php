@@ -41,7 +41,9 @@ class ArticleFormType extends AbstractType
             ->add('publishedAt', DateTimeType::class, [
                 'widget' => 'single_text'
             ])
-            ->add('author', UserSelectTextType::class)
+            ->add('author', UserSelectTextType::class, [
+                'attr' => ['class' => 'foo']
+            ])
         ;
     }
 
