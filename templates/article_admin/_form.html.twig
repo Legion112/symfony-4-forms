@@ -2,7 +2,9 @@
 {{ form_start(articleForm, {attr: {novalidate: 'novalidate'}}) }}
     {{ form_row(articleForm.title) }}
     {{ form_row(articleForm.content) }}
-    {{ form_row(articleForm.publishedAt) }}
+    {% if articleForm.publishedAt is defined %}
+        {{ form_row(articleForm.publishedAt) }}
+    {% endif %}
     {{ form_row(articleForm.author) }}
 
 <button type="submit" class="btn btn-primary">{{ button_text }}</button>
