@@ -37,7 +37,9 @@ class ArticleFormType extends AbstractType
         $builder->add('title', TextType::class, [
                 'help' => 'Choose something catchy!'
             ])
-            ->add('content')
+            ->add('content', null, [
+                'rows' => 15
+            ])
             ->add('publishedAt', DateTimeType::class, [
                 'widget' => 'single_text'
             ])
@@ -50,7 +52,7 @@ class ArticleFormType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Article::class
+            'data_class' => Article::class,
         ]);
     }
 }
