@@ -19,6 +19,9 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ArticleFormType extends AbstractType
@@ -35,8 +38,11 @@ class ArticleFormType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        /** @var Article|null $article */
         $article = $options['data'] ?? null;
         $isEdit = $article && $article->getId();
+
+        $location = $article ? $article->getLocation() : null;
 
         $builder->add('title', TextType::class, [
                 'help' => 'Choose something catchy!'
@@ -56,14 +62,16 @@ class ArticleFormType extends AbstractType
                 ],
                 'required' => false,
             ])
-            ->add('specificLocationName', ChoiceType::class, [
-                'placeholder' => 'Where exactly?',
-                'choices' => [
-                    'TODO' => 'TODO',
-                ],
-                'required' => false,
-            ])
         ;
+
+        if ($location) {
+            $builder
+                ->add('specificLocationName', ChoiceType::class, [
+                'placeholder' => 'Where exactly?',
+                'choices' => $this->getLocationNameChoices($location),
+                'required' => false,
+            ]);
+        }
 
         if ($options['include_published_at']) {
             $builder
@@ -72,7 +80,43 @@ class ArticleFormType extends AbstractType
             ]);
         }
 
+        $builder->get('location')->addEventListener(
+            FormEvents::POST_SUBMIT,
+            function (FormEvent $event) {
+                $form = $event->getForm();
+                $this->setupSpecificLocationName(
+                    $form->getParent(),
+                    $form->getData()
+                );
+            }
+        );
+
     }
+
+
+
+    private function setupSpecificLocationName(FormInterface $form, ?string $location)
+    {
+        if (null === $location) {
+            $form->remove('specificLocationName');
+            return;
+        }
+
+        $choices = $this->getLocationNameChoices($location);
+
+        if (null === $choices) {
+            $form->remove('specificLocationName');
+            return;
+        }
+
+        $form
+            ->add('specificLocationName', ChoiceType::class, [
+                'placeholder' => 'Where exactly?',
+                'choices' => $this->getLocationNameChoices($location),
+                'required' => false,
+            ]);
+    }
+
 
     public function configureOptions(OptionsResolver $resolver)
     {
@@ -80,5 +124,34 @@ class ArticleFormType extends AbstractType
             'data_class' => Article::class,
             'include_published_at' => false,
         ]);
+    }
+
+    private function getLocationNameChoices(string $location)
+    {
+        $planets = [
+            'Mercury',
+            'Venus',
+            'Earth',
+            'Mars',
+            'Jupiter',
+            'Saturn',
+            'Uranus',
+            'Neptune',
+        ];
+        $stars = [
+            'Polaris',
+            'Sirius',
+            'Alpha Centauari A',
+            'Alpha Centauari B',
+            'Betelgeuse',
+            'Rigel',
+            'Other'
+        ];
+        $locationNameChoices = [
+            'solar_system' => array_combine($planets, $planets),
+            'star' => array_combine($stars, $stars),
+            'interstellar_space' => null,
+        ];
+        return $locationNameChoices[$location];
     }
 }
