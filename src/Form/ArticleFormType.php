@@ -13,6 +13,7 @@ use App\Entity\Article;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use function Clue\StreamFilter\fun;
+use phpDocumentor\Reflection\Types\Null_;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -42,8 +43,6 @@ class ArticleFormType extends AbstractType
         $article = $options['data'] ?? null;
         $isEdit = $article && $article->getId();
 
-        $location = $article ? $article->getLocation() : null;
-
         $builder->add('title', TextType::class, [
                 'help' => 'Choose something catchy!'
             ])
@@ -64,14 +63,22 @@ class ArticleFormType extends AbstractType
             ])
         ;
 
-        if ($location) {
-            $builder
-                ->add('specificLocationName', ChoiceType::class, [
-                'placeholder' => 'Where exactly?',
-                'choices' => $this->getLocationNameChoices($location),
-                'required' => false,
-            ]);
-        }
+        $builder->addEventListener(
+            FormEvents::PRE_SET_DATA,
+            function(FormEvent $event) {
+                /** @var Article|Null $data */
+                $data = $event->getData();
+
+                if (!$data) {
+                    return;
+                }
+
+                $this->setupSpecificLocationName(
+                    $event->getForm(),
+                    $data->getLocation()
+                );
+            }
+        );
 
         if ($options['include_published_at']) {
             $builder
@@ -152,6 +159,6 @@ class ArticleFormType extends AbstractType
             'star' => array_combine($stars, $stars),
             'interstellar_space' => null,
         ];
-        return $locationNameChoices[$location];
+        return $locationNameChoices[$location] ?? null;
     }
 }
